@@ -219,6 +219,7 @@ export default function App() {
     const visibility = () => {
       if (document.hidden) {
         controls.current?.reset();
+        room.current?.setInput(neutral());
         if (worldRef.current && !room.current) setPaused(true);
       }
     };

@@ -95,6 +95,16 @@ describe('network input lifecycle', () => {
     ]);
   });
 
+  it('allows a pending ICE negotiation to finish before replacing its channel', () => {
+    const { peer } = openRoom('guest');
+    peer.channel.open = false;
+    const connect = vi.spyOn(peer as typeof peer & { connect: () => Channel }, 'connect');
+    vi.advanceTimersByTime(14000);
+    expect(connect).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1100);
+    expect(connect).toHaveBeenCalledOnce();
+  });
+
   it('preserves received movement across a local rendering stall, then expires stale input', () => {
     const { peer, input } = openRoom('host');
     const channel = new Channel();
@@ -106,7 +116,7 @@ describe('network input lifecycle', () => {
     vi.setSystemTime(Date.now() + 900);
     vi.advanceTimersByTime(50);
     expect(input).toHaveBeenLastCalledWith('guest', movement);
-    vi.advanceTimersByTime(600);
+    vi.advanceTimersByTime(1200);
     expect(input).toHaveBeenLastCalledWith('guest', neutral());
   });
 

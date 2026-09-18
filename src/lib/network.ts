@@ -43,6 +43,8 @@ interface Callbacks {
 }
 type Packet = { v: 1; type: string; [key: string]: unknown };
 const PREFIX = 'hunters-guild-v1-';
+const CONNECT_TIMEOUT = 15000;
+const INPUT_TIMEOUT = 2000;
 export const cleanCode = (s: string) =>
   s
     .toUpperCase()
@@ -91,7 +93,6 @@ export class Room {
   private tick: ReturnType<typeof setInterval>;
   private latest = neutral();
   private held = neutral();
-  private lastUpdate = Date.now();
   private lastHeard = Date.now();
   private started = Date.now();
   private lastConnect = 0;
@@ -237,7 +238,7 @@ export class Room {
         this.pending.delete(c);
         c.close();
       }
-    }, 8000);
+    }, CONNECT_TIMEOUT + 1000);
     c.on('data', (data) => this.receive(c, data));
     c.on('close', () => {
       clearTimeout(timeout);
@@ -419,16 +420,13 @@ export class Room {
   private update() {
     if (this.closed) return;
     const now = Date.now();
-    const schedulingDelay = now - this.lastUpdate;
-    this.lastUpdate = now;
     if (this.session.role === 'host') {
       if (now - this.lastPublish > 90 && this.world) {
         this.lastPublish = now;
         this.broadcast('world', { world: this.world });
       }
       for (const [id, time] of this.inputTimes)
-        if (now - time > Math.max(500, Math.min(3000, schedulingDelay * 2)))
-          this.callbacks.input(id, neutral());
+        if (now - time > INPUT_TIMEOUT) this.callbacks.input(id, neutral());
       if (now - this.lastSave > 2000) {
         this.lastSave = now;
         write(`room:${this.session.code}`, { members: this.view.members, world: this.world }, true);
@@ -444,7 +442,7 @@ export class Room {
       }
       if (
         (!this.guest?.open || now - this.lastHeard > 6000) &&
-        now - this.lastConnect > 4000 &&
+        now - this.lastConnect > CONNECT_TIMEOUT &&
         !this.rejected
       )
         this.connect();
@@ -454,7 +452,7 @@ export class Room {
         this.emit();
       }
     }
-    if (now - this.started > 25000 && this.view.status === 'connecting') {
+    if (now - this.started > 35000 && this.view.status === 'connecting') {
       this.view.status = 'error';
       this.view.message = '接続がタイムアウトしました。接続設定や回線を確認してください。';
       this.emit();

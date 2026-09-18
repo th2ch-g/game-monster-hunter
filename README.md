@@ -94,4 +94,6 @@ The browser suite exercises the quest board, all weapon choices, forging and sav
 
 To run against a deployed site, set `PLAYWRIGHT_BASE_URL` to its URL, including the repository path and trailing slash. Mobile viewport and WebKit tests do not constitute physical iOS or Android device certification. Relay-only TURN connectivity requires an independently provided and tested relay.
 
+WebKit solo-play checks pass. Cooperative WebKit testing could not establish a data channel in the available automation environment; a separate native WebRTC loopback check also failed there. Safari cooperative play remains unverified. Chromium cooperative checks use real WebRTC connections.
+
 See [artwork provenance](docs/artwork.md) for the title image generation prompts.

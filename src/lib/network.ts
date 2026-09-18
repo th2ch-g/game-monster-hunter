@@ -248,6 +248,11 @@ export class Room {
         m.connected = false;
         m.ready = false;
       }
+      if (this.world?.phase !== 'playing')
+        this.view.members = this.view.members.filter((member) => member.id !== id);
+      this.inputTimes.delete(id);
+      this.sequences.delete(id);
+      this.identities.delete(c);
       const p = this.world?.players.find((p) => p.id === id);
       if (p) p.connected = false;
       this.callbacks.input(id, neutral());
@@ -394,6 +399,7 @@ export class Room {
   returnToCamp() {
     if (this.session.role !== 'host') return;
     this.world = null;
+    this.view.members = this.view.members.filter((member) => member.connected);
     this.view.members.forEach((m) => {
       m.ready = m.id === this.session.member.id;
     });

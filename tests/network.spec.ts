@@ -96,6 +96,13 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
     await expect(p.getByRole('heading', { name: 'また、次の狩りへ。' })).toBeVisible();
   await host.getByRole('button', { name: 'キャンプへ帰還', exact: true }).click();
   await expect(guest.getByRole('button', { name: '準備完了', exact: true })).toBeVisible();
+  await guest.getByRole('button', { name: '集会所から退出', exact: true }).click();
+  await expect(host.locator('.member.occupied')).toHaveCount(3);
+  await guest.getByRole('button', { name: '仲間と狩る', exact: true }).click();
+  await guest.getByRole('button', { name: '参加する', exact: true }).click();
+  await expect(guest.getByRole('button', { name: '準備完了', exact: true })).toBeEnabled();
+  await expect(host.locator('.member.occupied')).toHaveCount(4);
+  expect(await guest.evaluate(() => window.__HUNT_STATE__().playerId)).not.toBe(id);
   expect(errors).toEqual([]);
   await Promise.all(contexts.slice(0, 4).map((c) => c.close()));
 });

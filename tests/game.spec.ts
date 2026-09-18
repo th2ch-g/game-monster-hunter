@@ -1,9 +1,15 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import type { World } from '../src/game/types';
+import type { Input, World } from '../src/game/types';
 declare global {
   interface Window {
-    __HUNT_STATE__: () => { world: World | null; playerId: string; fps: number; room: unknown };
+    __HUNT_STATE__: () => {
+      world: World | null;
+      playerId: string;
+      fps: number;
+      room: unknown;
+      controls: { enabled: boolean; keys: string[]; inputs: Record<string, Input> };
+    };
   }
 }
 const state = (page: Page) => page.evaluate(() => window.__HUNT_STATE__());

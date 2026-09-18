@@ -90,6 +90,8 @@ export class Room {
   private rejected = false;
   private tick: ReturnType<typeof setInterval>;
   private latest = neutral();
+  private held = neutral();
+  private lastUpdate = Date.now();
   private lastHeard = Date.now();
   private started = Date.now();
   private lastConnect = 0;
@@ -383,6 +385,7 @@ export class Room {
     if (this.session.role === 'guest') this.send(this.guest, 'ready', { ready });
   }
   setInput(input: Input) {
+    this.held = { ...input };
     this.latest = {
       ...input,
       attack: input.attack || this.latest.attack,
@@ -416,13 +419,16 @@ export class Room {
   private update() {
     if (this.closed) return;
     const now = Date.now();
+    const schedulingDelay = now - this.lastUpdate;
+    this.lastUpdate = now;
     if (this.session.role === 'host') {
       if (now - this.lastPublish > 90 && this.world) {
         this.lastPublish = now;
         this.broadcast('world', { world: this.world });
       }
       for (const [id, time] of this.inputTimes)
-        if (now - time > 500) this.callbacks.input(id, neutral());
+        if (now - time > Math.max(500, Math.min(3000, schedulingDelay * 2)))
+          this.callbacks.input(id, neutral());
       if (now - this.lastSave > 2000) {
         this.lastSave = now;
         write(`room:${this.session.code}`, { members: this.view.members, world: this.world }, true);
@@ -430,7 +436,7 @@ export class Room {
     } else {
       if (this.guest?.open) {
         this.send(this.guest, 'input', { input: this.latest, seq: ++this.count });
-        this.latest = { ...this.latest, attack: false, special: false, dodge: false, item: null };
+        this.latest = { ...this.held, item: null };
         if (now - this.lastPing > 1500) {
           this.lastPing = now;
           this.send(this.guest, 'ping', { time: now });

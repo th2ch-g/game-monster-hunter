@@ -1,13 +1,61 @@
 import { test, expect } from '@playwright/test';
+const inputEvents: string[] = [];
+test.afterEach(async ({ browser }, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus) return;
+  const snapshots = await Promise.all(
+    browser.contexts().flatMap((context) =>
+      context.pages().map(async (page) => {
+        try {
+          return await page.evaluate(() => ({
+            state: window.__HUNT_STATE__?.(),
+            visibility: document.visibilityState,
+            active: document.activeElement?.outerHTML,
+          }));
+        } catch {
+          return { closed: true };
+        }
+      }),
+    ),
+  );
+  await testInfo.attach('network-state', {
+    body: JSON.stringify(snapshots, null, 2),
+    contentType: 'application/json',
+  });
+  await testInfo.attach('network-input-events', {
+    body: inputEvents.join('\n'),
+    contentType: 'text/plain',
+  });
+});
 test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery and shared result', async ({
   browser,
 }) => {
   test.setTimeout(process.env.CI ? 300_000 : 180_000);
+  inputEvents.length = 0;
   const contexts = await Promise.all(
     Array.from({ length: 5 }, () => browser.newContext({ viewport: { width: 1000, height: 800 } })),
   );
   const pages = await Promise.all(contexts.map((c) => c.newPage()));
   const [host, guest, third, fourth, extra] = pages;
+  guest.on('console', (message) => {
+    if (message.text().startsWith('INPUT_EVENT')) inputEvents.push(message.text());
+  });
+  await guest.addInitScript(() => {
+    for (const type of ['keydown', 'keyup', 'blur', 'focus', 'visibilitychange'])
+      window.addEventListener(type, (event) => {
+        const state = window.__HUNT_STATE__?.();
+        console.debug(
+          'INPUT_EVENT',
+          JSON.stringify({
+            type,
+            code: (event as KeyboardEvent).code,
+            target: (event.target as HTMLElement)?.tagName,
+            visibility: document.visibilityState,
+            controls: state?.controls,
+            room: state?.room,
+          }),
+        );
+      });
+  });
   const errors: string[] = [];
   pages.forEach((p) => p.on('pageerror', (e) => errors.push(e.message)));
   await host.goto('./');

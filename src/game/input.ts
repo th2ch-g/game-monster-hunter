@@ -65,7 +65,10 @@ export class Controls {
     if (e.pointerType === 'touch' || e.button === 2) {
       this.drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
       this.element.setPointerCapture(e.pointerId);
-    } else if (e.button === 0) this.buttons.attack = true;
+    } else if (e.button === 0) {
+      this.setButton('attack', true);
+      this.element.setPointerCapture(e.pointerId);
+    }
   };
   private pointerMove = (e: PointerEvent) => {
     if (!this.drag || this.drag.id !== e.pointerId) return;

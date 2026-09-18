@@ -90,7 +90,7 @@ The simulation is independent of the renderer. The read-only `window.__HUNT_STAT
 
 Enable GitHub Pages with **GitHub Actions** as the source. Pushing `main` runs unit tests, TypeScript compilation, the production build, and Chromium end-to-end tests before deploying. The relative Vite base supports repository subpaths and custom hostnames without hardcoded repository URLs.
 
-The browser suite exercises the quest board, all weapon choices, forging and save persistence, real 3D movement and damage, retreat, portrait and landscape controls, invalid saves, accessibility, and real four-player WebRTC connections, full-room rejection, guest refresh, host recovery, and shared results. Tests require internet access for the public signaling service. Screenshots and traces are written to ignored artifact directories.
+The browser suite exercises the quest board, all weapon choices, forging and save persistence, real 3D movement and damage, retreat, portrait and landscape controls, invalid saves, accessibility, and real four-player WebRTC connections, full-room rejection, guest refresh, host recovery, and shared results. CI uses software WebGL and the supported low-quality preset; local Chrome and WebKit checks also cover automatic quality. Tests require internet access for the public signaling service. Screenshots and traces are written to ignored artifact directories.
 
 To run against a deployed site, set `PLAYWRIGHT_BASE_URL` to its URL, including the repository path and trailing slash. Mobile viewport and WebKit tests do not constitute physical iOS or Android device certification. Relay-only TURN connectivity requires an independently provided and tested relay.
 

@@ -142,7 +142,7 @@ test('invalid stored progress recovers to a playable profile', async ({ page }) 
 test('complete a real hunt through normal controls and persist earned rewards', async ({
   page,
 }) => {
-  test.setTimeout(150_000);
+  test.setTimeout(process.env.CI ? 240_000 : 150_000);
   await page.goto('./');
   await page.locator('.quest-card').filter({ hasText: 'リオレイア' }).click();
   await page.getByRole('button', { name: '変更', exact: true }).click();
@@ -151,7 +151,7 @@ test('complete a real hunt through normal controls and persist earned rewards', 
   await page.getByRole('button', { name: 'ソロで出発', exact: true }).click();
   await expect(page.getByRole('meter', { name: '体力', exact: true })).toBeVisible();
   await page.keyboard.down('j');
-  const deadline = Date.now() + 120000;
+  const deadline = Date.now() + (process.env.CI ? 210000 : 120000);
   while (Date.now() < deadline) {
     const s = await state(page);
     if (s.world!.phase !== 'playing') break;

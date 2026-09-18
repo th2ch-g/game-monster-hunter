@@ -11,6 +11,19 @@ export default defineConfig({
   use: {
     actionTimeout: 15000,
     baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4173',
+    storageState: process.env.CI
+      ? {
+          cookies: [],
+          origins: [
+            {
+              origin: new URL(process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:4173').origin,
+              localStorage: [
+                { name: 'guild:settings', value: JSON.stringify({ quality: 'low', sound: false }) },
+              ],
+            },
+          ],
+        }
+      : undefined,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     launchOptions: webkit

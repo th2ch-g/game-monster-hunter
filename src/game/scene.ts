@@ -357,8 +357,10 @@ export class HuntScene {
       this.fps = this.frames;
       this.frames = 0;
       this.fpsTime = time;
-      if (this.settings.quality === 'auto' && this.fps < 25 && this.renderer.getPixelRatio() > 1) {
-        this.renderer.setPixelRatio(1);
+      if (this.settings.quality === 'auto' && this.fps < 25) {
+        this.renderer.setPixelRatio(
+          Math.min(this.renderer.getPixelRatio(), this.fps < 12 ? 0.75 : 1),
+        );
         this.renderer.shadowMap.enabled = false;
       }
     }

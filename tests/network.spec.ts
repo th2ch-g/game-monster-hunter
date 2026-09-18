@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery and shared result', async ({
   browser,
 }) => {
-  test.setTimeout(180_000);
+  test.setTimeout(process.env.CI ? 300_000 : 180_000);
   const contexts = await Promise.all(
     Array.from({ length: 5 }, () => browser.newContext({ viewport: { width: 1000, height: 800 } })),
   );
@@ -38,19 +38,18 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
   await expect(guest.getByRole('meter', { name: '体力', exact: true })).toBeVisible();
   const id = await guest.evaluate(() => window.__HUNT_STATE__().playerId);
   const before = await host.evaluate(
-    (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!.z,
+    (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!,
     id,
   );
   await guest.keyboard.down('w');
   await expect
-    .poll(async () =>
-      Math.abs(
-        (await host.evaluate(
-          (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!.z,
-          id,
-        )) - before,
-      ),
-    )
+    .poll(async () => {
+      const p = await host.evaluate(
+        (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!,
+        id,
+      );
+      return Math.hypot(p.x - before.x, p.z - before.z);
+    })
     .toBeGreaterThan(2);
   await guest.keyboard.up('w');
   await guest.reload();
@@ -59,22 +58,30 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
     timeout: 30000,
   });
   expect(await guest.evaluate(() => window.__HUNT_STATE__().playerId)).toBe(id);
-  const rejoinZ = await host.evaluate(
-    (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!.z,
+  const rejoined = await host.evaluate(
+    (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!,
     id,
   );
   await guest.keyboard.down('s');
   await expect
-    .poll(async () =>
-      Math.abs(
-        (await host.evaluate(
-          (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!.z,
-          id,
-        )) - rejoinZ,
-      ),
-    )
+    .poll(async () => {
+      const p = await host.evaluate(
+        (id) => window.__HUNT_STATE__().world!.players.find((p) => p.id === id)!,
+        id,
+      );
+      return Math.hypot(p.x - rejoined.x, p.z - rejoined.z);
+    })
     .toBeGreaterThan(1);
   await guest.keyboard.up('s');
+  await guest.getByRole('button', { name: '狩猟メニュー', exact: true }).click();
+  const menuTime = await guest.evaluate(() => window.__HUNT_STATE__().world!.elapsed);
+  await expect
+    .poll(
+      async () => (await guest.evaluate(() => window.__HUNT_STATE__().world!.elapsed)) - menuTime,
+    )
+    .toBeGreaterThan(1);
+  await expect(guest.getByRole('dialog', { name: '狩猟メニュー' })).toBeVisible();
+  await guest.getByRole('button', { name: '狩りに戻る', exact: true }).click();
   await host.reload();
   await host.getByRole('button', { name: '仲間と狩る', exact: true }).click();
   await host.getByRole('button', { name: /前の集会所に復帰する/ }).click();

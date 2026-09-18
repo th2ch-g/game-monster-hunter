@@ -183,7 +183,7 @@ export default function App() {
         online.setInput(input);
         c?.consume();
       }
-      accumulated += Math.min((time - lastTime) / 1000, 0.12) || 0;
+      accumulated += Math.min((time - lastTime) / 1000, 0.5) || 0;
       lastTime = time;
       if (
         w &&
@@ -230,6 +230,11 @@ export default function App() {
         playerId: playerId.current,
         fps: scene.current?.fps,
         room: room.current ? structuredClone(room.current.view) : null,
+        controls: {
+          enabled: controls.current?.enabled || false,
+          keys: [...(controls.current?.keys || [])],
+          inputs: structuredClone(inputs.current),
+        },
       }),
     });
     return () => {
@@ -265,13 +270,16 @@ export default function App() {
     companion: settings.companion,
   });
   const receiveWorld = (w: World | null) => {
+    const changedHunt = w?.id !== worldRef.current?.id;
     worldRef.current = w;
     setWorld(w);
-    if (w) {
+    if (w && changedHunt) {
       setPanel(null);
       setPaused(false);
+      pausedRef.current = false;
+      controls.current?.reset();
       if (controls.current) controls.current.enabled = w.phase === 'playing';
-    } else setPanel('online');
+    } else if (!w) setPanel('online');
   };
   const beginSolo = () => {
     audio.current?.unlock();

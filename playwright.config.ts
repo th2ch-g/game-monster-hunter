@@ -29,7 +29,7 @@ export default defineConfig({
     launchOptions: webkit
       ? {}
       : {
-          channel: process.env.PLAYWRIGHT_CHANNEL,
+          channel: process.env.PLAYWRIGHT_CHANNEL || 'chromium',
           args: process.env.CI
             ? ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']
             : ['--enable-webgl'],

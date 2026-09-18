@@ -59,6 +59,7 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
   const errors: string[] = [];
   pages.forEach((p) => p.on('pageerror', (e) => errors.push(e.message)));
   await host.goto('./');
+  await host.bringToFront();
   await host.getByLabel('クエスト難度').selectOption('practice');
   await host.getByRole('button', { name: '仲間と狩る', exact: true }).click();
   await host.getByLabel('ハンター名', { exact: true }).fill('HOST');
@@ -69,6 +70,7 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
   const code = await host.getByTestId('room-code').innerText();
   for (const [i, p] of [guest, third, fourth].entries()) {
     await p.goto(`./#room=${code}`);
+    await p.bringToFront();
     await p.getByLabel('ハンター名', { exact: true }).fill(`GUEST${i + 1}`);
     await p.getByRole('button', { name: '参加する', exact: true }).click();
     await expect(p.getByRole('button', { name: '準備完了', exact: true })).toBeEnabled({
@@ -79,10 +81,13 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
   }
   await expect(host.locator('.member.occupied')).toHaveCount(4);
   await extra.goto(`./#room=${code}`);
+  await extra.bringToFront();
   await extra.getByRole('button', { name: '参加する', exact: true }).click();
   await expect(extra.getByRole('status')).toContainText('満員', { timeout: 30000 });
   await contexts[4].close();
+  await host.bringToFront();
   await host.getByRole('button', { name: '全員で出発', exact: true }).click();
+  await guest.bringToFront();
   await expect(guest.getByRole('meter', { name: '体力', exact: true })).toBeVisible();
   const id = await guest.evaluate(() => window.__HUNT_STATE__().playerId);
   const before = await host.evaluate(
@@ -101,6 +106,7 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
     .toBeGreaterThan(2);
   await guest.keyboard.up('w');
   await guest.reload();
+  await guest.bringToFront();
   await guest.getByRole('button', { name: /前の集会所に復帰する/ }).click();
   await expect(guest.getByRole('meter', { name: '体力', exact: true })).toBeVisible({
     timeout: 30000,
@@ -130,7 +136,9 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
     .toBeGreaterThan(1);
   await expect(guest.getByRole('dialog', { name: '狩猟メニュー' })).toBeVisible();
   await guest.getByRole('button', { name: '狩りに戻る', exact: true }).click();
+  await host.bringToFront();
   await host.reload();
+  await host.bringToFront();
   await host.getByRole('button', { name: '仲間と狩る', exact: true }).click();
   await host.getByRole('button', { name: /前の集会所に復帰する/ }).click();
   await expect(host.getByRole('meter', { name: '体力', exact: true })).toBeVisible({
@@ -150,6 +158,7 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
   for (const p of [host, guest, third, fourth])
     await expect(p.getByRole('heading', { name: 'また、次の狩りへ。' })).toBeVisible();
   await host.getByRole('button', { name: 'キャンプへ帰還', exact: true }).click();
+  await guest.bringToFront();
   await expect(guest.getByRole('button', { name: '準備完了', exact: true })).toBeVisible();
   await guest.getByRole('button', { name: '集会所から退出', exact: true }).click();
   await expect(host.locator('.member.occupied')).toHaveCount(3);

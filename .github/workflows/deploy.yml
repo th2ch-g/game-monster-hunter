@@ -23,7 +23,7 @@ jobs:
       - name: Check formatting, game rules, and production build
         run: npm run format:check && npm run check
       - name: Install browser
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps --no-shell chromium
       - name: Verify desktop, mobile, and real cooperative play
         run: npm run test:e2e
       - name: Preserve test evidence

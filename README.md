@@ -96,4 +96,6 @@ To run against a deployed site, set `PLAYWRIGHT_BASE_URL` to its URL, including 
 
 WebKit solo-play checks pass. Cooperative WebKit testing could not establish a data channel in the available automation environment; a separate native WebRTC loopback check also failed there. Safari cooperative play remains unverified. Chromium cooperative checks use real WebRTC connections.
 
+Four-player CI sessions use 640 by 480 viewports and allow longer UI-action waits to fit four software-rendered worlds within the runner's CPU budget. Local cooperative checks use 1000 by 800 viewports; the separate mobile suite covers portrait, landscape, and simultaneous touch input.
+
 See [artwork provenance](docs/artwork.md) for the title image generation prompts.

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+test.use({ actionTimeout: process.env.CI ? 45000 : 15000 });
 const inputEvents: string[] = [];
 test.afterEach(async ({ browser }, testInfo) => {
   if (testInfo.status === testInfo.expectedStatus) return;
@@ -32,7 +33,11 @@ test('real WebRTC: four players, ready gate, shared hunt, rejoin, host recovery 
   test.setTimeout(process.env.CI ? 300_000 : 180_000);
   inputEvents.length = 0;
   const contexts = await Promise.all(
-    Array.from({ length: 5 }, () => browser.newContext({ viewport: { width: 1000, height: 800 } })),
+    Array.from({ length: 5 }, () =>
+      browser.newContext({
+        viewport: process.env.CI ? { width: 640, height: 480 } : { width: 1000, height: 800 },
+      }),
+    ),
   );
   const pages = await Promise.all(contexts.map((c) => c.newPage()));
   const [host, guest, third, fourth, extra] = pages;

@@ -38,7 +38,7 @@ Standard gamepads also support movement, camera yaw, X attack, Y special, A dodg
 
 Open the gathering hub, create a room, and share its eight-character code or invite link. Every connected guest must mark ready before the host can depart. The quest and difficulty are selected by the host before room creation; each hunter selects their own equipment beforehand.
 
-The host simulates combat at 30 steps per second and sends snapshots approximately ten times per second. Guests send validated input, not damage or positions. The renderer smooths incoming positions. A room accepts four human hunters, with no Palico in cooperative play. Late entry during a hunt is limited to reconnecting members.
+The host simulates combat at 30 steps per second and sends snapshots approximately ten times per second. Simulation and input run independently of animation-frame delivery. Guests send validated input, not damage or positions. The renderer smooths incoming positions. A room accepts four human hunters, with no Palico in cooperative play. Late entry during a hunt is limited to reconnecting members.
 
 Guest identity survives refresh in session storage. Disconnected hunters stop acting and taking damage; stale movement input is cleared. The host checkpoints its room and hunt in session storage. Use **前の集会所に復帰する** after refreshing. The host must keep its tab visible and device awake. There is no host migration; if the host leaves permanently, the party cannot continue that hunt.
 

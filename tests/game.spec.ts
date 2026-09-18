@@ -13,6 +13,27 @@ declare global {
   }
 }
 const state = (page: Page) => page.evaluate(() => window.__HUNT_STATE__());
+test('simulation and input continue when rendering frames are suspended', async ({ page }) => {
+  await page.goto('./');
+  await page.getByLabel('クエスト難度').selectOption('practice');
+  await page.getByRole('button', { name: 'ソロで出発', exact: true }).click();
+  await expect(page.getByRole('meter', { name: '体力', exact: true })).toBeVisible();
+  await page.evaluate(() => {
+    window.requestAnimationFrame = () => 0;
+  });
+  const before = (await state(page)).world!;
+  await page.keyboard.down('w');
+  await expect
+    .poll(async () => {
+      const w = (await state(page)).world!;
+      return Math.hypot(w.players[0].x - before.players[0].x, w.players[0].z - before.players[0].z);
+    })
+    .toBeGreaterThan(5);
+  await page.keyboard.up('w');
+  await expect
+    .poll(async () => (await state(page)).world!.elapsed - before.elapsed)
+    .toBeGreaterThan(2);
+});
 test('quest board, all weapons, forge, save, help, and keyboard accessibility', async ({
   page,
 }) => {

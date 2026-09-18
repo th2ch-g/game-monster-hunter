@@ -164,10 +164,10 @@ export default function App() {
     }
     let frame = 0,
       lastUI = 0,
-      lastTime = 0,
+      lastTime = performance.now(),
       accumulated = 0;
-    const animate = (time: number) => {
-      const s = scene.current,
+    const simulate = () => {
+      const time = performance.now(),
         w = worldRef.current,
         c = controls.current,
         online = room.current;
@@ -200,6 +200,11 @@ export default function App() {
           if (online) online.world = w;
         }
       } else accumulated = 0;
+    };
+    const simulationTimer = setInterval(simulate, 1000 / 30);
+    const animate = (time: number) => {
+      const s = scene.current,
+        w = worldRef.current;
       if (w)
         for (const e of w.effects)
           if (e.id > effectCursor.current) {
@@ -240,6 +245,7 @@ export default function App() {
     });
     return () => {
       cancelAnimationFrame(frame);
+      clearInterval(simulationTimer);
       document.removeEventListener('visibilitychange', visibility);
       controls.current?.dispose();
       scene.current?.dispose();
